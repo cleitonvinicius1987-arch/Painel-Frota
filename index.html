@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetAnalytics V26 | Dashboard Profissional</title>
+    <title>FleetAnalytics V26 | Solução de Link</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -11,181 +11,153 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root { --bg-dark: #020617; --card-bg: #0f172a; --accent: #38bdf8; }
-        body { background-color: var(--bg-dark); color: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .card-v26 { background: var(--card-bg); border: 1px solid #1e293b; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        :root { --bg: #020617; --card: #0f172a; --accent: #38bdf8; }
+        body { background-color: var(--bg); color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .card-v26 { background: var(--card); border: 1px solid #1e293b; border-radius: 0.75rem; }
         
         /* Dropdown Estilo Power BI */
-        .filter-container { position: relative; width: 100%; }
-        .filter-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 0.4rem; display: block; letter-spacing: 0.05em; }
-        
-        .filter-btn { 
-            background: #1e293b; border: 1px solid #334155; padding: 0.7rem 1rem; border-radius: 0.5rem; 
-            width: 100%; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
-        }
-        .filter-btn:hover { border-color: var(--accent); }
-        
-        .filter-menu { 
-            display: none; position: absolute; top: 100%; left: 0; width: 100%; 
+        .dropdown-menu { 
+            display: none; position: absolute; top: 105%; left: 0; width: 100%; 
             background: #1e293b; border: 1px solid var(--accent); border-radius: 0.5rem; 
-            z-index: 1000; max-height: 280px; overflow-y: auto; margin-top: 6px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            z-index: 1000; max-height: 280px; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
         }
-        .filter-menu.show { display: block; animation: fadeIn 0.2s ease; }
+        .dropdown-menu.show { display: block; }
         
-        .option-row { display: flex; align-items: center; padding: 10px 14px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #0f172a; }
+        .option-row { display: flex; align-items: center; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #0f172a; }
         .option-row:hover { background: #334155; }
         
-        /* Checkbox Customizada */
-        .check-ui { width: 18px; height: 18px; border: 2px solid #475569; border-radius: 4px; margin-right: 12px; position: relative; flex-shrink: 0; transition: 0.2s; }
+        .check-ui { width: 18px; height: 18px; border: 2px solid #475569; border-radius: 4px; margin-right: 12px; position: relative; flex-shrink: 0; }
         .selected .check-ui { background: var(--accent); border-color: var(--accent); }
         .selected .check-ui::after { content: '✓'; position: absolute; color: #000; font-size: 11px; font-weight: 900; left: 3px; top: -1px; }
         
-        .option-text { font-size: 0.85rem; color: #cbd5e1; }
-        .selected .option-text { color: white; font-weight: 600; }
-
-        .badge-count { background: var(--accent); color: #020617; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .badge { background: var(--accent); color: #020617; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+        .btn-filter { background: #1e293b; border: 1px solid #334155; padding: 0.7rem 1rem; border-radius: 0.5rem; width: 100%; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <div class="flex items-center gap-4">
-                <div class="p-3 bg-sky-500/10 rounded-2xl"><i class="fas fa-chart-pie text-sky-500 text-2xl"></i></div>
-                <div>
-                    <h1 class="text-3xl font-extrabold tracking-tight">FleetAnalytics <span class="text-sky-500">V26</span></h1>
-                    <p class="text-slate-500 text-sm font-medium">Gestão Estratégica de Ocorrências e Diesel</p>
-                </div>
-            </div>
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-extrabold">FleetAnalytics <span class="text-sky-500 text-sm">V26 FIX</span></h1>
             <div class="flex gap-3">
-                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center gap-2">
-                    <i class="fas fa-file-csv"></i> Upload Manual
-                    <input type="file" accept=".csv" class="hidden" onchange="manualUpload(event)">
+                <label class="cursor-pointer bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold border border-slate-700">
+                    <i class="fas fa-file-csv"></i> Upload CSV
+                    <input type="file" accept=".csv" class="hidden" onchange="manualFile(event)">
                 </label>
-                <button onclick="updateFromDrive()" class="bg-sky-600 hover:bg-sky-500 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-sky-900/40">
+                <button onclick="updateFromDrive()" class="bg-sky-600 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
                     <i class="fas fa-sync-alt" id="refresh-icon"></i> Sincronizar Drive
                 </button>
             </div>
         </header>
 
         <div class="card-v26 p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            <div class="filter-container">
-                <label class="filter-label">Embarcação</label>
-                <div onclick="toggleFilter('drop-barco')" class="filter-btn"><span id="txt-barco" class="truncate">Todas</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
-                <div id="drop-barco" class="filter-menu">
-                    <div class="p-2 border-b border-slate-800"><input type="text" placeholder="Filtrar..." class="w-full bg-slate-900 text-xs p-2 rounded outline-none border border-slate-700 focus:border-sky-500" onkeyup="searchList('list-barco', this.value)"></div>
-                    <div id="list-barco"></div>
-                </div>
+            <div class="relative">
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Embarcação</label>
+                <div onclick="toggleMenu('menu-barco')" class="btn-filter"><span id="txt-barco">Todas</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
+                <div id="menu-barco" class="dropdown-menu"><div id="list-barco"></div></div>
             </div>
-            <div class="filter-container">
-                <label class="filter-label">Tipo de Barco</label>
-                <div onclick="toggleFilter('drop-tipo')" class="filter-btn"><span id="txt-tipo" class="truncate">Todos</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
-                <div id="drop-tipo" class="filter-menu"><div id="list-tipo"></div></div>
+            <div class="relative">
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Tipo de Barco</label>
+                <div onclick="toggleMenu('menu-tipo')" class="btn-filter"><span id="txt-tipo">Todos</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
+                <div id="menu-tipo" class="dropdown-menu"><div id="list-tipo"></div></div>
             </div>
-            <div class="filter-container">
-                <label class="filter-label">Ano / Referência</label>
-                <div onclick="toggleFilter('drop-ano')" class="filter-btn"><span id="txt-ano" class="truncate">Todos</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
-                <div id="drop-ano" class="filter-menu"><div id="list-ano"></div></div>
+            <div class="relative">
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Ano</label>
+                <div onclick="toggleMenu('menu-ano')" class="btn-filter"><span id="txt-ano">Todos</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
+                <div id="menu-ano" class="dropdown-menu"><div id="list-ano"></div></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="card-v26 p-6 border-l-4 border-sky-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Impacto Notificado</p>
-                <h2 id="kpi-total" class="text-2xl font-bold">R$ 0,00</h2>
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Total Notificado</p>
+                <h2 id="kpi-total" class="text-xl font-bold">R$ 0,00</h2>
             </div>
             <div class="card-v26 p-6 border-l-4 border-emerald-500">
                 <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Saving Total</p>
-                <h2 id="kpi-saving" class="text-2xl font-bold text-emerald-400">R$ 0,00</h2>
+                <h2 id="kpi-saving" class="text-xl font-bold text-emerald-400">R$ 0,00</h2>
             </div>
             <div class="card-v26 p-6 border-l-4 border-indigo-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Eficiência de Defesa</p>
-                <h2 id="kpi-taxa" class="text-2xl font-bold text-indigo-400">0%</h2>
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Eficiência Defesa</p>
+                <h2 id="kpi-taxa" class="text-xl font-bold text-indigo-400">0%</h2>
             </div>
             <div class="card-v26 p-6 border-l-4 border-amber-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Volume Cobrado (m³)</p>
-                <h2 id="kpi-vol" class="text-2xl font-bold text-amber-400">0</h2>
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Volume (m³)</p>
+                <h2 id="kpi-vol" class="text-xl font-bold text-amber-400">0</h2>
             </div>
         </div>
 
-        <div class="card-v26 p-8 mb-8">
-            <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-6 tracking-widest flex items-center gap-2">
-                <i class="fas fa-oil-can text-amber-500"></i> Distribuição de Volumes por Ano (Filtro Aplicado)
-            </h3>
-            <div id="year-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+        <div class="card-v26 p-6 mb-8">
+            <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Volumes Cobrados por Ano</h3>
+            <div id="year-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 card-v26 p-8">
-                <h3 class="text-sm font-bold uppercase text-slate-500 mb-8 tracking-wider">Top Impacto Financeiro (BRL)</h3>
-                <div class="h-[400px]"><canvas id="barChart"></canvas></div>
-            </div>
-            <div class="card-v26 p-8">
-                <h3 class="text-sm font-bold uppercase text-slate-500 mb-8 tracking-wider text-center">Status dos Processos</h3>
-                <div class="h-[300px]"><canvas id="donutChart"></canvas></div>
-                <div id="donut-legend" class="mt-8 space-y-2"></div>
-            </div>
+        <div class="card-v26 p-8">
+            <div class="h-[400px]"><canvas id="barChart"></canvas></div>
         </div>
     </div>
 
     <script>
+        // LINK CSV PUBLICADO
         const DRIVE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbMe1iGMYgj5EyXKgo9uqqoekMrFTrRm7uFqQzUYkNyC_9Z7S_AuC7Bw9VCCMKXw/pub?gid=777564264&single=true&output=csv';
         
-        let fullData = [], filters = { barco: [], tipo: [], ano: [] }, chartBar = null, chartDonut = null;
+        let fullData = [], filters = { barco: [], tipo: [], ano: [] }, chart = null;
 
         window.onload = updateFromDrive;
-        window.onclick = e => { if(!e.target.closest('.filter-container')) document.querySelectorAll('.filter-menu').forEach(m=>m.classList.remove('show')); };
+        window.onclick = e => { if(!e.target.closest('.relative')) document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('show')); };
 
-        function toggleFilter(id) {
+        function toggleMenu(id) {
             const el = document.getElementById(id);
-            const isVisible = el.classList.contains('show');
-            document.querySelectorAll('.filter-menu').forEach(m=>m.classList.remove('show'));
-            if(!isVisible) el.classList.add('show');
+            const isShow = el.classList.contains('show');
+            document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('show'));
+            if(!isShow) el.classList.add('show');
         }
 
         async function updateFromDrive() {
             const icon = document.getElementById('refresh-icon');
             icon.classList.add('fa-spin');
+            
             Papa.parse(DRIVE_CSV, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: r => coreProcess(r.data),
-                error: () => { alert("Erro ao acessar o Drive. Verifique se o link CSV está publicado."); icon.classList.remove('fa-spin'); }
+                error: (err) => { 
+                    alert("Atenção: O link do Drive não retornou dados. Use o botão 'Upload CSV' enquanto verifica a publicação.");
+                    icon.classList.remove('fa-spin');
+                }
             });
         }
 
-        function manualUpload(e) {
+        function manualFile(e) {
             const file = e.target.files[0];
             if(file) Papa.parse(file, { header: true, skipEmptyLines: true, complete: r => coreProcess(r.data) });
         }
 
-        function detectCol(data, words) {
+        function getCol(data, words) {
+            if(!data[0]) return null;
             const keys = Object.keys(data[0]);
             return keys.find(k => words.some(w => k.toLowerCase().trim().includes(w)));
         }
 
         function coreProcess(data) {
-            const kB = detectCol(data, ['barco']);
+            const kB = getCol(data, ['barco']);
+            if(!kB) { alert("Erro: Não foi possível identificar a coluna de Embarcação na planilha."); return; }
+            
             fullData = data.filter(d => d[kB] && d[kB].trim() !== "" && d[kB] !== 'Total');
             
-            buildCheckboxes(kB, 'list-barco', 'barco');
-            buildCheckboxes(detectCol(data, ['tipo']), 'list-tipo', 'tipo');
-            buildCheckboxes(detectCol(data, ['ano']), 'list-ano', 'ano');
+            buildChecks(kB, 'list-barco', 'barco');
+            buildChecks(getCol(data, ['tipo']), 'list-tipo', 'tipo');
+            buildChecks(getCol(data, ['ano']), 'list-ano', 'ano');
             
             updateUI();
             document.getElementById('refresh-icon').classList.remove('fa-spin');
         }
 
-        function buildCheckboxes(key, containerId, filterKey) {
+        function buildChecks(key, containerId, filterKey) {
             if(!key) return;
             const unique = [...new Set(fullData.map(d => d[key]))].filter(x => x).sort();
             document.getElementById(containerId).innerHTML = unique.map(val => `
                 <div class="option-row" onclick="handleSelect('${filterKey}', '${val}', this)">
-                    <div class="check-ui"></div><span class="option-text">${val}</span>
+                    <div class="check-ui"></div><span class="text-xs text-slate-300">${val}</span>
                 </div>
             `).join('');
         }
@@ -195,19 +167,14 @@
             if(idx > -1) { filters[type].splice(idx, 1); el.classList.remove('selected'); }
             else { filters[type].push(val); el.classList.add('selected'); }
             
-            const txt = filters[type].length === 0 ? (type === 'barco' ? 'Todas' : 'Todos') : `${filters[type].length} selecionado(s)`;
+            const btnTxt = filters[type].length === 0 ? "Todas" : `${filters[type].length} selecionado(s)`;
             const label = document.getElementById(`txt-${type}`);
-            label.innerHTML = filters[type].length === 0 ? txt : `${txt} <span class="badge-count">${filters[type].length}</span>`;
+            label.innerHTML = filters[type].length === 0 ? btnTxt : `${btnTxt} <span class="badge">${filters[type].length}</span>`;
             
             updateUI();
         }
 
-        function searchList(id, val) {
-            const items = document.querySelectorAll(`#${id} .option-row`);
-            items.forEach(it => it.style.display = it.innerText.toLowerCase().includes(val.toLowerCase()) ? 'flex' : 'none');
-        }
-
-        function cleanValue(v) {
+        function cleanNum(v) {
             if(!v) return 0;
             let n = v.toString().replace('R$', '').replace(/\s/g, '');
             if(n.includes(',') && n.includes('.')) n = n.replace(/\./g, '').replace(',', '.');
@@ -216,10 +183,9 @@
         }
 
         function updateUI() {
-            const kB = detectCol(fullData, ['barco']), kT = detectCol(fullData, ['tipo']), kA = detectCol(fullData, ['ano']);
-            const kV = detectCol(fullData, ['valor inicial', 'valor total']), kS = detectCol(fullData, ['saving']), kVol = detectCol(fullData, ['volume cobrado']);
-            const kSt = detectCol(fullData, ['status processo']);
-            const kDef = detectCol(fullData, ['defesa aceita']);
+            const kB = getCol(fullData, ['barco']), kT = getCol(fullData, ['tipo']), kA = getCol(fullData, ['ano']);
+            const kV = getCol(fullData, ['valor inicial', 'valor total']), kS = getCol(fullData, ['saving']), kVol = getCol(fullData, ['volume cobrado']);
+            const kDef = getCol(fullData, ['defesa aceita']);
 
             const filtered = fullData.filter(d => {
                 return (filters.barco.length === 0 || filters.barco.includes(d[kB])) &&
@@ -228,16 +194,14 @@
             });
 
             let tNot = 0, tSav = 0, tVol = 0, defA = 0, defT = 0;
-            const barcoMap = {}, yearMap = {}, statusMap = {};
+            const bMap = {}, yearMap = {};
 
             filtered.forEach(d => {
-                const n = cleanValue(d[kV]), s = cleanValue(d[kS]), v = cleanValue(d[kVol]);
+                const n = cleanNum(d[kV]), s = cleanNum(d[kS]), v = cleanNum(d[kVol]);
                 tNot += n; tSav += s; tVol += v;
                 if(d[kDef]) { defT++; if(d[kDef].toUpperCase().trim() === 'SIM') defA++; }
-                barcoMap[d[kB]] = (barcoMap[d[kB]] || 0) + n;
+                bMap[d[kB]] = (bMap[d[kB]] || 0) + n;
                 yearMap[d[kA]] = (yearMap[d[kA]] || 0) + v;
-                const status = d[kSt] || 'Indefinido';
-                statusMap[status] = (statusMap[status] || 0) + 1;
             });
 
             document.getElementById('kpi-total').innerText = tNot.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
@@ -246,19 +210,20 @@
             document.getElementById('kpi-taxa').innerText = defT > 0 ? ((defA/defT)*100).toFixed(1) + '%' : '0%';
             
             document.getElementById('year-cards').innerHTML = Object.keys(yearMap).sort().map(y => `
-                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800 text-center">
-                    <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">${y}</p>
-                    <p class="text-lg font-bold text-white">${yearMap[y].toLocaleString('pt-BR')}<span class="text-[10px] ml-1 text-slate-500">m³</span></p>
+                <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-800 text-center">
+                    <p class="text-[9px] text-slate-500 uppercase font-bold">${y}</p>
+                    <p class="text-sm font-bold text-white">${yearMap[y].toLocaleString('pt-BR')} m³</p>
                 </div>
             `).join('');
 
-            renderCharts(barcoMap, statusMap);
+            render(bMap);
         }
 
-        function renderCharts(barcos, status) {
-            const sortedB = Object.entries(barcos).sort((a,b)=>b[1]-a[1]).slice(0, 10);
-            if(chartBar) chartBar.destroy();
-            chartBar = new Chart(document.getElementById('barChart'), {
+        function render(data) {
+            const sortedB = Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+            const ctx = document.getElementById('barChart').getContext('2d');
+            if(chart) chart.destroy();
+            chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: sortedB.map(x=>x[0]),
@@ -267,24 +232,9 @@
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
                     plugins: { legend: { display: false } },
-                    scales: { y: { grid:{color:'#1e293b'}, ticks:{color:'#64748b', font:{size:10}} }, x: { ticks:{color:'#94a3b8', font:{size:10}} } }
+                    scales: { y: { grid:{color:'#1e293b'}, ticks:{color:'#64748b'} }, x: { ticks:{color:'#94a3b8'} } }
                 }
             });
-
-            if(chartDonut) chartDonut.destroy();
-            const colors = ['#38bdf8', '#818cf8', '#fbbf24', '#f87171', '#34d399'];
-            chartDonut = new Chart(document.getElementById('donutChart'), {
-                type: 'doughnut',
-                data: { labels: Object.keys(status), datasets: [{ data: Object.values(status), backgroundColor: colors, borderWidth: 0 }] },
-                options: { cutout: '85%', plugins: { legend: { display: false } }, responsive: true }
-            });
-
-            document.getElementById('donut-legend').innerHTML = Object.keys(status).map((l, i) => `
-                <div class="flex justify-between text-[11px] items-center">
-                    <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background:${colors[i%5]}"></span><span class="text-slate-400">${l}</span></div>
-                    <span class="font-bold text-white">${status[l]}</span>
-                </div>
-            `).join('');
         }
     </script>
 </body>
