@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAINEL OCORRÊNCIAS - V38</title>
+    <title>PAINEL OCORRÊNCIAS - V39</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -30,7 +30,7 @@
         <h1 class="text-3xl font-900 vivid-text tracking-tight uppercase mb-1 px-4">PAINEL OCORRÊNCIAS CONSUMO EM EXCESSO</h1>
         <div class="flex items-center justify-center gap-2">
             <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <p id="statusSheet" class="text-[10px] text-slate-400 uppercase font-bold tracking-[0.4em]">Sincronizando Dados...</p>
+            <p id="statusSheet" class="text-[10px] text-slate-400 uppercase font-bold tracking-[0.4em]">Tentando Conexão Segura...</p>
         </div>
     </header>
 
@@ -39,21 +39,21 @@
             <div class="relative min-w-[180px] flex-1 max-w-[280px]">
                 <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Embarcação</span>
                 <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentBARCO')">
-                    <span id="labelBARCO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <span id="labelBARCO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="contentBARCO" class="dropdown-content"></div>
             </div>
             <div class="relative min-w-[180px] flex-1 max-w-[280px]">
                 <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Ano</span>
                 <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentANO')">
-                    <span id="labelANO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <span id="labelANO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="contentANO" class="dropdown-content"></div>
             </div>
             <div class="relative min-w-[180px] flex-1 max-w-[280px]">
                 <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Trimestre</span>
                 <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentQTR')">
-                    <span id="labelQTR">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <span id="labelQTR">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="contentQTR" class="dropdown-content"></div>
             </div>
@@ -78,8 +78,8 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="glass-card p-6"><h3 class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-6 text-center">Volume Descontado por Barco</h3><div class="chart-container"><canvas id="chartBarcos"></canvas></div></div>
-                <div class="glass-card p-6"><h3 id="custosTitle" class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-6 text-center">Desconto vs Saving (Mi)</h3><div class="chart-container"><canvas id="chartAgrupado"></canvas></div></div>
+                <div class="glass-card p-6"><h3 class="text-[10px] font-900 text-slate-400 uppercase mb-6 text-center">Volume Descontado por Barco</h3><div class="chart-container"><canvas id="chartBarcos"></canvas></div></div>
+                <div class="glass-card p-6"><h3 id="custosTitle" class="text-[10px] font-900 text-slate-400 uppercase mb-6 text-center">Desconto vs Saving (Mi)</h3><div class="chart-container"><canvas id="chartAgrupado"></canvas></div></div>
             </div>
 
             <div class="glass-card overflow-hidden">
@@ -97,31 +97,52 @@
         
         <div id="loaderArea" class="flex flex-col items-center justify-center py-40 text-center">
             <div id="spinner" class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500 mb-6"></div>
-            <h2 id="loadTitle" class="text-xl font-bold text-slate-300 uppercase tracking-widest">Carregando Dados...</h2>
+            <h2 id="loadTitle" class="text-xl font-bold text-slate-300 uppercase tracking-widest">Sincronizando Drive...</h2>
+            <div id="manualBtn" class="hidden mt-6">
+                <p class="text-rose-500 text-sm mb-4">A conexão automática falhou.</p>
+                <label class="btn-gradient px-8 py-3 rounded-full font-bold text-white cursor-pointer inline-block">
+                    CARREGAR CSV MANUALMENTE
+                    <input type="file" id="fileFallback" class="hidden" accept=".csv">
+                </label>
+            </div>
         </div>
     </main>
 
     <script>
+        // SEU LINK DE PUBLICAÇÃO
         const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbMe1iGMYgj5EyXKgo9uqqoekMrFTrRm7uFqQzUYkNyC_9Z7S_AuC7Bw9VCCMKXw/pub?gid=777564264&single=true&output=csv";
+        
+        // SOLUÇÃO DE PROXY PARA BYPASS DE CORS
+        const PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(SHEET_URL);
+
         Chart.register(ChartDataLabels);
         let rawData = [], charts = {}, filters = { BARCO: [], ANO: [], QTR: [] };
 
-        window.onload = function() {
-            Papa.parse(SHEET_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    if (results.data && results.data.length > 0) {
-                        processInitialData(results.data);
-                    } else {
-                        document.getElementById('loadTitle').innerText = "Erro: Dados não encontrados.";
-                    }
-                },
-                error: (err) => {
-                    document.getElementById('loadTitle').innerText = "Erro de Conexão com o Google Drive.";
-                }
-            });
+        window.onload = startApp;
+
+        async function startApp() {
+            try {
+                const response = await fetch(PROXY_URL);
+                const json = await response.json();
+                const csvData = json.contents;
+                
+                if (csvData && csvData.length > 10) {
+                    Papa.parse(csvData, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => processInitialData(results.data)
+                    });
+                } else { throw new Error(); }
+            } catch (e) {
+                document.getElementById('spinner').classList.add('hidden');
+                document.getElementById('loadTitle').innerText = "Erro de Sincronização";
+                document.getElementById('manualBtn').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('fileFallback').onchange = (e) => {
+            const file = e.target.files[0];
+            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (r) => processInitialData(r.data) });
         };
 
         function cleanNum(v) {
@@ -136,13 +157,11 @@
                 for (let k in row) obj[k.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] = row[k];
                 return obj;
             });
-
             document.getElementById('loaderArea').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
             document.getElementById('navBar').classList.remove('hidden');
             document.getElementById('statusSheet').innerText = "Sincronizado";
-            document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-emerald-500";
-
+            document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-emerald-500 animate-none";
             initFilters();
             updateDashboard();
         }
@@ -157,7 +176,7 @@
                 opts.forEach(o => {
                     let div = document.createElement('div');
                     div.className = 'dropdown-item';
-                    div.innerHTML = `<input type="checkbox" checked> <span class="truncate">${o}</span>`;
+                    div.innerHTML = `<input type="checkbox" checked> <span>${o}</span>`;
                     div.onclick = (ev) => {
                         const cb = div.querySelector('input');
                         if (ev.target !== cb) cb.checked = !cb.checked;
@@ -192,11 +211,9 @@
             );
 
             let s = { vn:0, vd:0, vol:0, sv:0 }, bData = {}, qMap = {};
-
             filtered.forEach(d => {
                 const st = String(d['STATUS PROCESSO'] || '').toUpperCase();
                 const vn = cleanNum(d['VALOR TOTAL NOTIFICADO']), vd = cleanNum(d['VALOR TOTAL DESCONTADO']), vol = cleanNum(d['VOLUME DESCONTADO']), sv = cleanNum(d['SAVING']);
-                
                 if (!st.includes('CANCEL')) {
                     s.vn += vn; s.vd += vd; s.vol += vol; s.sv += sv;
                     const b = d.BARCO || 'S/D';
@@ -229,7 +246,7 @@
                     labels: labels,
                     datasets: [
                         { type: 'line', data: labels.map(l => qMap[l]), borderColor: '#10b981', tension: 0.4, fill: false, datalabels: {display: false} },
-                        { type: 'bar', data: labels.map(l => qMap[l]), backgroundColor: 'rgba(0, 210, 255, 0.2)', borderRadius: 8, datalabels: { color: '#fff', font: {weight: 'bold'}, formatter: v => (v/1000000).toFixed(1)+' Mi' } }
+                        { type: 'bar', data: labels.map(l => qMap[l]), backgroundColor: 'rgba(0, 210, 255, 0.2)', borderRadius: 8, datalabels: { color: '#fff', font: {weight: 'bold'}, formatter: v => (v/1000000).toFixed(0)+' Mi' } }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: false }, scales: { y: { display: false }, x: { ticks: { color: '#94a3b8' } } } }
@@ -256,20 +273,17 @@
         function renderTable(data) {
             const tableData = data.filter(r => (cleanNum(r['VALOR TOTAL NOTIFICADO']) + cleanNum(r['VALOR TOTAL DESCONTADO'])) > 0);
             document.getElementById('tableBody').innerHTML = tableData.map(r => `
-                <tr class="hover:bg-white/5 border-b border-white/5 ${String(r['STATUS PROCESSO']).toUpperCase().includes('CANCEL') ? 'opacity-30' : ''}">
+                <tr class="hover:bg-white/5 border-b border-white/5 ${String(r['STATUS PROCESSO'] || '').toUpperCase().includes('CANCEL') ? 'opacity-30' : ''}">
                     <td class="p-4 font-bold text-white">${r.BARCO || 'S/D'}</td>
                     <td class="p-4 text-center">${r['ENQUADRAMENTO QTR'] || '-'}</td>
-                    <td class="p-4">${Math.round(cleanNum(r['VALOR TOTAL NOTIFICADO'])).toLocaleString('pt-BR')}</td>
-                    <td class="p-4 text-rose-400 font-bold">${Math.round(cleanNum(r['VALOR TOTAL DESCONTADO'])).toLocaleString('pt-BR')}</td>
-                    <td class="p-4 text-emerald-400 font-bold">${Math.round(cleanNum(r['SAVING'])).toLocaleString('pt-BR')}</td>
+                    <td class="p-4 text-slate-300">R$ ${Math.round(cleanNum(r['VALOR TOTAL NOTIFICADO'])).toLocaleString('pt-BR')}</td>
+                    <td class="p-4 text-rose-400 font-bold">R$ ${Math.round(cleanNum(r['VALOR TOTAL DESCONTADO'])).toLocaleString('pt-BR')}</td>
+                    <td class="p-4 text-emerald-400 font-bold">R$ ${Math.round(cleanNum(r['SAVING'])).toLocaleString('pt-BR')}</td>
                     <td class="p-4 text-center"><span class="px-2 py-0.5 rounded-full text-[8px] font-900 bg-white/10 uppercase">${r['STATUS PROCESSO'] || 'OK'}</span></td>
                 </tr>`).join('');
         }
 
-        function toggleDropdown(id) {
-            document.querySelectorAll('.dropdown-content').forEach(d => { if(d.id !== id) d.classList.remove('show'); });
-            document.getElementById(id).classList.toggle('show');
-        }
+        function toggleDropdown(id) { document.querySelectorAll('.dropdown-content').forEach(d => { if(d.id !== id) d.classList.remove('show'); }); document.getElementById(id).classList.toggle('show'); }
         window.onclick = (e) => { if (!e.target.closest('.relative')) document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show')); };
     </script>
 </body>
