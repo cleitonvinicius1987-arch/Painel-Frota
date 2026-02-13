@@ -3,172 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetAnalytics | Dashboard Final</title>
+    <title>FleetAnalytics PRO | Dashboard Operacional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background-color: #0b0f19; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .card-pro { background: #161b26; border: 1px solid rgba(255,255,255,0.05); border-radius: 1rem; }
+        body { background-color: #020617; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .card-pro { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         
-        /* Dropdowns Estilo Power BI */
-        .dropdown-container { position: relative; width: 100%; }
+        /* Dropdown Estilizado - Estilo Power BI */
+        .dropdown-wrapper { position: relative; width: 100%; }
+        .dropdown-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.4rem; display: block; }
+        
         .dropdown-btn { 
-            background: #1f2937; border: 1px solid #374151; padding: 0.75rem 1rem; border-radius: 0.5rem; 
-            width: 100%; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            background: #1e293b; border: 1px solid #334155; padding: 0.6rem 1rem; border-radius: 0.5rem; 
+            width: 100%; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
         }
-        .dropdown-content { 
-            display: none; position: absolute; top: 105%; left: 0; width: 100%; min-width: 280px;
-            background: #1f2937; border: 1px solid #38bdf8; border-radius: 0.5rem; z-index: 999; 
-            max-height: 300px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 5px;
-        }
-        .dropdown-content.show { display: block; }
+        .dropdown-btn:hover { border-color: #38bdf8; }
         
-        .option-row { display: flex; align-items: center; padding: 0.7rem 1rem; cursor: pointer; border-radius: 0.4rem; transition: 0.2s; }
-        .option-row:hover { background: #374151; }
-        
-        /* Checkbox Visual */
-        .check-box { 
-            width: 18px; height: 18px; border: 2px solid #4b5563; border-radius: 4px; 
-            margin-right: 12px; position: relative; flex-shrink: 0;
+        .dropdown-menu { 
+            display: none; position: absolute; top: 100%; left: 0; width: 100%; 
+            background: #1e293b; border: 1px solid #38bdf8; border-radius: 0.5rem; 
+            z-index: 1000; max-height: 280px; overflow-y: auto; margin-top: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
         }
-        .option-row.selected .check-box { background: #38bdf8; border-color: #38bdf8; }
-        .option-row.selected .check-box::after { 
-            content: '✓'; position: absolute; color: white; font-size: 12px; left: 3px; top: -1px; font-weight: bold;
-        }
+        .dropdown-menu.show { display: block; }
         
-        .badge { background: #38bdf8; color: #000; font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+        .option-row { display: flex; align-items: center; padding: 8px 12px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #0f172a; }
+        .option-row:hover { background: #334155; }
+        
+        /* Checkbox Customizada */
+        .checkbox-ui { width: 18px; height: 18px; border: 2px solid #475569; border-radius: 4px; margin-right: 12px; position: relative; flex-shrink: 0; }
+        .selected .checkbox-ui { background: #38bdf8; border-color: #38bdf8; }
+        .selected .checkbox-ui::after { content: '✓'; position: absolute; color: white; font-size: 11px; font-weight: bold; left: 3px; top: -1px; }
+        
+        .option-row span { font-size: 0.85rem; color: #cbd5e1; }
+        .selected span { color: white; font-weight: 600; }
+
+        .badge-info { background: #38bdf8; color: #020617; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 10px; margin-left: 8px; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <h1 class="text-2xl font-bold">Fleet<span class="text-sky-500">Analytics</span></h1>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">FleetAnalytics <span class="text-sky-500 text-sm font-medium">| Dash Operacional</span></h1>
+            </div>
             <div class="flex gap-3">
-                <label class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded font-bold text-sm cursor-pointer border border-slate-600">
-                    <i class="fas fa-upload mr-2"></i>Upload CSV
-                    <input type="file" accept=".csv" class="hidden" onchange="loadLocalFile(event)">
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold border border-slate-700 transition">
+                    <i class="fas fa-file-upload mr-2"></i> CSV Local
+                    <input type="file" accept=".csv" class="hidden" onchange="loadLocal(event)">
                 </label>
-                <button onclick="loadFromDrive()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded font-bold text-sm flex items-center gap-2">
+                <button onclick="loadDrive()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition">
                     <i class="fas fa-sync" id="spin"></i> Atualizar Drive
                 </button>
             </div>
-        </div>
+        </header>
 
-        <div class="card-pro p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="dropdown-container">
-                <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Embarcação</label>
-                <div class="dropdown-btn" onclick="toggleDrop('drop-barco')"><span id="txt-barco">Todas</span> <i class="fas fa-chevron-down opacity-30"></i></div>
-                <div id="drop-barco" class="dropdown-content">
-                    <div class="p-2"><input type="text" placeholder="Buscar..." class="w-full bg-slate-900 p-2 rounded text-sm outline-none" onkeyup="filterRows('list-barco', this.value)"></div>
+        <div class="card-pro p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            <div class="dropdown-wrapper">
+                <label class="dropdown-label">Embarcação</label>
+                <div onclick="toggle('drop-barco')" class="dropdown-btn"><span id="txt-barco" class="truncate">Todas</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
+                <div id="drop-barco" class="dropdown-menu">
+                    <div class="p-2 border-b border-slate-800"><input type="text" placeholder="Pesquisar..." class="w-full bg-slate-900 text-xs p-2 rounded outline-none border border-slate-700 focus:border-sky-500" onkeyup="search('list-barco', this.value)"></div>
                     <div id="list-barco"></div>
                 </div>
             </div>
-            <div class="dropdown-container">
-                <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Tipo de Barco</label>
-                <div class="dropdown-btn" onclick="toggleDrop('drop-tipo')"><span id="txt-tipo">Todos</span> <i class="fas fa-chevron-down opacity-30"></i></div>
-                <div id="drop-tipo" class="dropdown-content"><div id="list-tipo"></div></div>
+            <div class="dropdown-wrapper">
+                <label class="dropdown-label">Tipo de Barco</label>
+                <div onclick="toggle('drop-tipo')" class="dropdown-btn"><span id="txt-tipo" class="truncate">Todos</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
+                <div id="drop-tipo" class="dropdown-menu"><div id="list-tipo"></div></div>
             </div>
-            <div class="dropdown-container">
-                <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Ano</label>
-                <div class="dropdown-btn" onclick="toggleDrop('drop-ano')"><span id="txt-ano">Todos</span> <i class="fas fa-chevron-down opacity-30"></i></div>
-                <div id="drop-ano" class="dropdown-content"><div id="list-ano"></div></div>
+            <div class="dropdown-wrapper">
+                <label class="dropdown-label">Período / Ano</label>
+                <div onclick="toggle('drop-ano')" class="dropdown-btn"><span id="txt-ano" class="truncate">Todos</span> <i class="fas fa-chevron-down opacity-30 text-xs"></i></div>
+                <div id="drop-ano" class="dropdown-menu"><div id="list-ano"></div></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="card-pro p-5 border-l-4 border-sky-500"><p class="text-slate-500 text-xs font-bold uppercase mb-1">Total Notificado</p><h2 id="kpi-total" class="text-xl font-bold text-white">R$ 0,00</h2></div>
-            <div class="card-pro p-5 border-l-4 border-emerald-500"><p class="text-slate-500 text-xs font-bold uppercase mb-1">Saving Total</p><h2 id="kpi-saving" class="text-xl font-bold text-emerald-400">R$ 0,00</h2></div>
-            <div class="card-pro p-5 border-l-4 border-amber-500"><p class="text-slate-500 text-xs font-bold uppercase mb-1">Volume Total</p><h2 id="kpi-vol" class="text-xl font-bold text-amber-500">0 m³</h2></div>
-            <div class="card-pro p-5 border-l-4 border-indigo-500"><p class="text-slate-500 text-xs font-bold uppercase mb-1">Volumes por Ano</p><div id="year-stats" class="text-[10px] space-y-1 mt-1"></div></div>
+            <div class="card-pro p-5 border-l-4 border-sky-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Total Notificado</p>
+                <h2 id="total" class="text-xl font-bold">R$ 0,00</h2>
+            </div>
+            <div class="card-pro p-5 border-l-4 border-emerald-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Saving Total</p>
+                <h2 id="saving" class="text-xl font-bold text-emerald-400">R$ 0,00</h2>
+            </div>
+            <div class="card-pro p-5 border-l-4 border-indigo-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Taxa de Sucesso</p>
+                <h2 id="taxa" class="text-xl font-bold text-indigo-400">0%</h2>
+            </div>
+            <div class="card-pro p-5 border-l-4 border-amber-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Volume Seleção</p>
+                <h2 id="volume" class="text-xl font-bold text-amber-500">0 m³</h2>
+            </div>
+        </div>
+
+        <div class="card-pro p-6 mb-8">
+            <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Distribuição de Volume por Ano (Filtro)</h3>
+            <div id="grid-anos" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
         </div>
 
         <div class="card-pro p-8">
-            <h3 class="text-xs font-bold uppercase mb-6 text-slate-500 tracking-widest">Impacto por Embarcação (BRL)</h3>
+            <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-6 tracking-widest text-center">Top 10 Impacto Financeiro (BRL)</h3>
             <div class="h-[400px]"><canvas id="mainChart"></canvas></div>
         </div>
     </div>
 
     <script>
-        const DRIVE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRkYmpE1Ja82Ek-qo39K1rQUfZhDm2MSdP_L1-nzfqFBVJTGoOQMzlHOIjH5x_ITZ-iGHz90PKSGqfE/pub?gid=2043405360&single=true&output=csv';
-        
-        let rawData = [];
-        let filters = { barco: [], tipo: [], ano: [] };
-        let chart = null;
+        // LINK CSV FORNECIDO
+        const URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbMe1iGMYgj5EyXKgo9uqqoekMrFTrRm7uFqQzUYkNyC_9Z7S_AuC7Bw9VCCMKXw/pub?gid=777564264&single=true&output=csv';
 
-        // Inicia carregando do Drive
-        window.onload = loadFromDrive;
+        let fullData = [], filters = { barco: [], tipo: [], ano: [] }, chart = null;
 
-        // Fecha dropdowns
-        window.onclick = e => { if(!e.target.closest('.dropdown-container')) document.querySelectorAll('.dropdown-content').forEach(d=>d.classList.remove('show')); };
+        window.onload = loadDrive;
+        window.onclick = e => { if(!e.target.closest('.dropdown-wrapper')) document.querySelectorAll('.dropdown-menu').forEach(d=>d.classList.remove('show')); };
 
-        function toggleDrop(id) {
+        function toggle(id) {
             const el = document.getElementById(id);
             const isShow = el.classList.contains('show');
-            document.querySelectorAll('.dropdown-content').forEach(d=>d.classList.remove('show'));
+            document.querySelectorAll('.dropdown-menu').forEach(d=>d.classList.remove('show'));
             if(!isShow) el.classList.add('show');
         }
 
-        async function loadFromDrive() {
+        async function loadDrive() {
             document.getElementById('spin').classList.add('fa-spin');
-            Papa.parse(DRIVE_URL, {
+            Papa.parse(URL_CSV, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: r => process(r.data),
-                error: () => alert("Erro ao carregar link. Certifique-se de que a planilha está publicada como CSV.")
+                error: () => { alert("Falha ao ler o CSV. Verifique o link de publicação."); document.getElementById('spin').classList.remove('fa-spin'); }
             });
         }
 
-        function loadLocalFile(e) {
+        function loadLocal(e) {
             const file = e.target.files[0];
             if(file) Papa.parse(file, { header: true, skipEmptyLines: true, complete: r => process(r.data) });
         }
 
-        // FUNÇÃO DE DETECÇÃO DINÂMICA DE COLUNAS
-        function getCol(data, keywords) {
+        function findCol(data, words) {
             const keys = Object.keys(data[0]);
-            return keys.find(k => keywords.some(kw => k.toLowerCase().trim().includes(kw.toLowerCase())));
+            return keys.find(k => words.some(w => k.toLowerCase().trim().includes(w)));
         }
 
         function process(data) {
-            // Filtra linhas vazias e identifica a coluna do Barco
-            const kBarco = getCol(data, ['barco']);
-            rawData = data.filter(d => d[kBarco] && d[kBarco].trim() !== "" && d[kBarco] !== 'Total');
+            const kB = findCol(data, ['barco']);
+            fullData = data.filter(d => d[kB] && d[kB].trim() !== "" && d[kB] !== 'Total');
             
-            buildFilterOptions();
-            updateDashboard();
+            build(kB, 'list-barco', 'barco');
+            build(findCol(data, ['tipo']), 'list-tipo', 'tipo');
+            build(findCol(data, ['ano']), 'list-ano', 'ano');
+            
+            update();
             document.getElementById('spin').classList.remove('fa-spin');
         }
 
-        function buildFilterOptions() {
-            const kBarco = getCol(rawData, ['barco']);
-            const kTipo = getCol(rawData, ['tipo']);
-            const kAno = getCol(rawData, ['ano']);
-
-            const create = (key, listId, filterType) => {
-                const unique = [...new Set(rawData.map(d => d[key]))].filter(x => x).sort();
-                document.getElementById(listId).innerHTML = unique.map(v => `
-                    <div class="option-row" onclick="toggleSelection('${filterType}', '${v}', this)">
-                        <div class="check-box"></div><span>${v}</span>
-                    </div>
-                `).join('');
-            };
-
-            if(kBarco) create(kBarco, 'list-barco', 'barco');
-            if(kTipo) create(kTipo, 'list-tipo', 'tipo');
-            if(kAno) create(kAno, 'list-ano', 'ano');
+        function build(key, listId, type) {
+            if(!key) return;
+            const unique = [...new Set(fullData.map(d => d[key]))].filter(x => x).sort();
+            document.getElementById(listId).innerHTML = unique.map(v => `
+                <div class="option-row" onclick="select('${type}', '${v}', this)">
+                    <div class="checkbox-ui"></div><span>${v}</span>
+                </div>
+            `).join('');
         }
 
-        function toggleSelection(type, val, el) {
+        function select(type, val, el) {
             const idx = filters[type].indexOf(val);
             if(idx > -1) { filters[type].splice(idx, 1); el.classList.remove('selected'); }
             else { filters[type].push(val); el.classList.add('selected'); }
             
-            const btnText = filters[type].length === 0 ? 'Todas' : `${filters[type].length} selecionado(s)`;
-            document.getElementById(`txt-${type}`).innerText = btnText;
-            updateDashboard();
+            const btnText = filters[type].length === 0 ? "Todas" : `${filters[type].length} selecionado(s)`;
+            const label = document.getElementById(`txt-${type}`);
+            label.innerHTML = filters[type].length === 0 ? btnText : `${btnText} <span class="badge-info">${filters[type].length}</span>`;
+            
+            update();
+        }
+
+        function search(listId, val) {
+            const rows = document.querySelectorAll(`#${listId} .option-row`);
+            rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val.toLowerCase()) ? 'flex' : 'none');
         }
 
         function cleanNum(v) {
@@ -179,42 +199,49 @@
             return parseFloat(n) || 0;
         }
 
-        function updateDashboard() {
-            const kB = getCol(rawData, ['barco']);
-            const kT = getCol(rawData, ['tipo']);
-            const kA = getCol(rawData, ['ano']);
-            const kV = getCol(rawData, ['valor inicial', 'valor total']);
-            const kS = getCol(rawData, ['saving']);
-            const kVol = getCol(rawData, ['volume cobrado']);
+        function update() {
+            const kB = findCol(fullData, ['barco']), kT = findCol(fullData, ['tipo']), kA = findCol(fullData, ['ano']);
+            const kV = findCol(fullData, ['valor inicial', 'valor total']), kS = findCol(fullData, ['saving']), kVol = findCol(fullData, ['volume cobrado']);
+            const kDef = findCol(fullData, ['defesa aceita']);
 
-            const filtered = rawData.filter(d => {
+            const filtered = fullData.filter(d => {
                 return (filters.barco.length === 0 || filters.barco.includes(d[kB])) &&
                        (filters.tipo.length === 0 || filters.tipo.includes(d[kT])) &&
                        (filters.ano.length === 0 || filters.ano.includes(d[kA]));
             });
 
-            let tN = 0, tS = 0, tV = 0;
+            let tN = 0, tS = 0, tV = 0, defA = 0, defT = 0;
             const bMap = {}, yMap = {};
 
             filtered.forEach(d => {
                 const n = cleanNum(d[kV]), s = cleanNum(d[kS]), v = cleanNum(d[kVol]);
                 tN += n; tS += s; tV += v;
+                
+                if(d[kDef]) {
+                    defT++;
+                    if(d[kDef].toUpperCase().trim() === 'SIM') defA++;
+                }
+                
                 bMap[d[kB]] = (bMap[d[kB]] || 0) + n;
                 yMap[d[kA]] = (yMap[d[kA]] || 0) + v;
             });
 
-            document.getElementById('kpi-total').innerText = tN.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-            document.getElementById('kpi-saving').innerText = tS.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-            document.getElementById('kpi-vol').innerText = tV.toLocaleString('pt-BR') + ' m³';
+            document.getElementById('total').innerText = tN.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+            document.getElementById('saving').innerText = tS.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+            document.getElementById('volume').innerText = tV.toLocaleString('pt-BR') + ' m³';
+            document.getElementById('taxa').innerText = defT > 0 ? ((defA/defT)*100).toFixed(1) + '%' : '0%';
             
-            document.getElementById('year-stats').innerHTML = Object.keys(yMap).sort().map(y => 
-                `<div class="flex justify-between border-b border-slate-800 pb-1"><span>${y}:</span><span class="font-bold text-slate-300">${yMap[y].toLocaleString('pt-BR')} m³</span></div>`
-            ).join('');
+            document.getElementById('grid-anos').innerHTML = Object.keys(yMap).filter(y => y !== "undefined").sort().map(y => `
+                <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-800 text-center">
+                    <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">${y}</p>
+                    <p class="text-sm font-bold text-slate-200">${yMap[y].toLocaleString('pt-BR')} m³</p>
+                </div>
+            `).join('');
 
-            renderChart(bMap);
+            render(bMap);
         }
 
-        function renderChart(data) {
+        function render(data) {
             const sorted = Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0, 10);
             const ctx = document.getElementById('mainChart').getContext('2d');
             if(chart) chart.destroy();
@@ -222,19 +249,14 @@
                 type: 'bar',
                 data: {
                     labels: sorted.map(x=>x[0]),
-                    datasets: [{ label: 'BRL', data: sorted.map(x=>x[1]), backgroundColor: '#38bdf8', borderRadius: 8 }]
+                    datasets: [{ label: 'Impacto BRL', data: sorted.map(x=>x[1]), backgroundColor: '#38bdf8', borderRadius: 4 }]
                 },
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
                     plugins: { legend: { display: false } },
-                    scales: { y: { grid:{color:'#1e2937'}, ticks:{color:'#64748b'} }, x: { ticks:{color:'#94a3b8'} } }
+                    scales: { y: { grid:{color:'#1e293b'}, ticks:{color:'#64748b', font:{size:10}} }, x: { ticks:{color:'#94a3b8', font:{size:10}} } }
                 }
             });
-        }
-
-        function filterRows(id, val) {
-            const rows = document.querySelectorAll(`#${id} .option-row`);
-            rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val.toLowerCase()) ? 'flex' : 'none');
         }
     </script>
 </body>
