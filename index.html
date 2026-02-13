@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAINEL OCORRÊNCIAS - V39</title>
+    <title>PAINEL OCORRÊNCIAS - V40</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -28,46 +28,49 @@
 
     <header class="w-full pt-12 pb-8 text-center bg-[#0b0f1a]">
         <h1 class="text-3xl font-900 vivid-text tracking-tight uppercase mb-1 px-4">PAINEL OCORRÊNCIAS CONSUMO EM EXCESSO</h1>
-        <div class="flex items-center justify-center gap-2">
-            <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <p id="statusSheet" class="text-[10px] text-slate-400 uppercase font-bold tracking-[0.4em]">Tentando Conexão Segura...</p>
+        <div id="statusIndicator" class="flex items-center justify-center gap-2">
+            <span id="statusDot" class="w-2 h-2 rounded-full bg-slate-600"></span>
+            <p id="statusText" class="text-[10px] text-slate-400 uppercase font-bold tracking-[0.4em]">Aguardando Dados</p>
         </div>
     </header>
 
     <nav id="navBar" class="sticky top-0 z-50 bg-[#0b0f1a]/95 backdrop-blur-xl border-y border-white/10 px-6 py-4 hidden">
         <div id="filterGrid" class="max-w-[1400px] mx-auto flex flex-wrap items-end justify-center gap-4">
             <div class="relative min-w-[180px] flex-1 max-w-[280px]">
-                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Embarcação</span>
+                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1 tracking-wider">Embarcação</span>
                 <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentBARCO')">
-                    <span id="labelBARCO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+                    <span id="labelBARCO">Todos</span><svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="contentBARCO" class="dropdown-content"></div>
             </div>
             <div class="relative min-w-[180px] flex-1 max-w-[280px]">
-                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Ano</span>
+                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1 tracking-wider">Ano</span>
                 <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentANO')">
-                    <span id="labelANO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+                    <span id="labelANO">Todos</span><svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="contentANO" class="dropdown-content"></div>
             </div>
             <div class="relative min-w-[180px] flex-1 max-w-[280px]">
-                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Trimestre</span>
+                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1 tracking-wider">Trimestre</span>
                 <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentQTR')">
-                    <span id="labelQTR">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+                    <span id="labelQTR">Todos</span><svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                 </div>
                 <div id="contentQTR" class="dropdown-content"></div>
             </div>
-            <button onclick="location.reload()" class="btn-gradient px-8 py-2.5 rounded-lg font-bold text-white text-[10px] shadow-lg h-[38px] hover:scale-105 transition-all">SINCRONIZAR</button>
+            <label class="btn-gradient px-8 py-2.5 rounded-lg font-bold text-white text-[10px] shadow-lg flex items-center gap-2 h-[38px] transition-all hover:scale-105 cursor-pointer">
+                ATUALIZAR DADOS (CSV)
+                <input type="file" id="fileUpdate" class="hidden" accept=".csv">
+            </label>
         </div>
     </nav>
 
     <main class="p-6 max-w-[1600px] mx-auto">
         <div id="dashboardContent" class="hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8 text-center">
-                <div class="glass-card p-6 border-l-4 border-blue-500"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor Notificado</p><h2 id="kpi-v-not" class="text-2xl font-900 mt-2 text-sky-400">R$ 0</h2></div>
-                <div class="glass-card p-6 border-l-4 border-rose-500"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Descontado</p><h2 id="kpi-v-des" class="text-2xl font-900 mt-2 text-rose-500">R$ 0</h2></div>
-                <div class="glass-card p-6 border-l-4 border-amber-500"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Volume Descontado</p><h2 id="kpi-vol-des" class="text-2xl font-900 mt-2 text-amber-500">0</h2></div>
-                <div class="glass-card p-6 border-l-4 border-emerald-500"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saving Total</p><h2 id="kpi-saving" class="text-2xl font-900 mt-2 text-emerald-400">R$ 0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-blue-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Valor Notificado</p><h2 id="kpi-v-not" class="text-2xl font-900 mt-2 text-sky-400">R$ 0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-rose-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Total Descontado</p><h2 id="kpi-v-des" class="text-2xl font-900 mt-2 text-rose-500">R$ 0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-amber-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Volume Descontado</p><h2 id="kpi-vol-des" class="text-2xl font-900 mt-2 text-amber-500">0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-emerald-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Saving Total</p><h2 id="kpi-saving" class="text-2xl font-900 mt-2 text-emerald-400">R$ 0</h2></div>
             </div>
 
             <div id="qtrCompRow" class="mb-8 hidden">
@@ -78,12 +81,12 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="glass-card p-6"><h3 class="text-[10px] font-900 text-slate-400 uppercase mb-6 text-center">Volume Descontado por Barco</h3><div class="chart-container"><canvas id="chartBarcos"></canvas></div></div>
-                <div class="glass-card p-6"><h3 id="custosTitle" class="text-[10px] font-900 text-slate-400 uppercase mb-6 text-center">Desconto vs Saving (Mi)</h3><div class="chart-container"><canvas id="chartAgrupado"></canvas></div></div>
+                <div class="glass-card p-6"><h3 class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-6 text-center">Volume Descontado por Barco</h3><div class="chart-container"><canvas id="chartBarcos"></canvas></div></div>
+                <div class="glass-card p-6"><h3 id="custosTitle" class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-6 text-center">Desconto vs Saving (Mi)</h3><div class="chart-container"><canvas id="chartAgrupado"></canvas></div></div>
             </div>
 
             <div class="glass-card overflow-hidden">
-                <div class="px-6 py-4 border-b border-white/5 bg-white/5 text-center"><h3 class="text-[10px] font-900 text-slate-400 uppercase tracking-widest">Listagem Geral de Processos</h3></div>
+                <div class="px-6 py-4 border-b border-white/5 bg-white/5 text-center"><h3 class="text-[10px] font-900 text-slate-400 uppercase tracking-widest">Listagem de Processos</h3></div>
                 <div class="overflow-x-auto max-h-[500px]">
                     <table class="w-full text-left border-collapse text-[11px]">
                         <thead class="sticky top-0 bg-slate-900 text-slate-400 uppercase font-bold">
@@ -95,55 +98,42 @@
             </div>
         </div>
         
-        <div id="loaderArea" class="flex flex-col items-center justify-center py-40 text-center">
-            <div id="spinner" class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500 mb-6"></div>
-            <h2 id="loadTitle" class="text-xl font-bold text-slate-300 uppercase tracking-widest">Sincronizando Drive...</h2>
-            <div id="manualBtn" class="hidden mt-6">
-                <p class="text-rose-500 text-sm mb-4">A conexão automática falhou.</p>
-                <label class="btn-gradient px-8 py-3 rounded-full font-bold text-white cursor-pointer inline-block">
-                    CARREGAR CSV MANUALMENTE
-                    <input type="file" id="fileFallback" class="hidden" accept=".csv">
-                </label>
-            </div>
+        <div id="setupArea" class="flex flex-col items-center justify-center py-40 text-center">
+            <h2 class="text-xl font-bold text-slate-300 uppercase tracking-widest mb-4">Inicializar Painel</h2>
+            <p class="text-slate-500 text-sm max-w-sm mx-auto mb-8">Para garantir que o painel funcione sem erros de sincronização, baixe a planilha do Google como CSV e selecione-a uma única vez abaixo.</p>
+            <label class="btn-gradient px-12 py-4 rounded-full font-bold text-white cursor-pointer shadow-2xl hover:scale-105 transition-all">
+                SELECIONAR ARQUIVO CSV
+                <input type="file" id="fileFirstLoad" class="hidden" accept=".csv">
+            </label>
         </div>
     </main>
 
     <script>
-        // SEU LINK DE PUBLICAÇÃO
-        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbMe1iGMYgj5EyXKgo9uqqoekMrFTrRm7uFqQzUYkNyC_9Z7S_AuC7Bw9VCCMKXw/pub?gid=777564264&single=true&output=csv";
-        
-        // SOLUÇÃO DE PROXY PARA BYPASS DE CORS
-        const PROXY_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(SHEET_URL);
-
         Chart.register(ChartDataLabels);
         let rawData = [], charts = {}, filters = { BARCO: [], ANO: [], QTR: [] };
 
-        window.onload = startApp;
-
-        async function startApp() {
-            try {
-                const response = await fetch(PROXY_URL);
-                const json = await response.json();
-                const csvData = json.contents;
-                
-                if (csvData && csvData.length > 10) {
-                    Papa.parse(csvData, {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => processInitialData(results.data)
-                    });
-                } else { throw new Error(); }
-            } catch (e) {
-                document.getElementById('spinner').classList.add('hidden');
-                document.getElementById('loadTitle').innerText = "Erro de Sincronização";
-                document.getElementById('manualBtn').classList.remove('hidden');
+        window.onload = function() {
+            const saved = localStorage.getItem('fleetData_V40');
+            if (saved) {
+                processInitialData(JSON.parse(saved));
             }
-        }
-
-        document.getElementById('fileFallback').onchange = (e) => {
-            const file = e.target.files[0];
-            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (r) => processInitialData(r.data) });
         };
+
+        document.getElementById('fileFirstLoad').onchange = handleFile;
+        document.getElementById('fileUpdate').onchange = handleFile;
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    localStorage.setItem('fleetData_V40', JSON.stringify(results.data));
+                    processInitialData(results.data);
+                }
+            });
+        }
 
         function cleanNum(v) {
             if (!v) return 0;
@@ -157,11 +147,13 @@
                 for (let k in row) obj[k.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] = row[k];
                 return obj;
             });
-            document.getElementById('loaderArea').classList.add('hidden');
+
+            document.getElementById('setupArea').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
             document.getElementById('navBar').classList.remove('hidden');
-            document.getElementById('statusSheet').innerText = "Sincronizado";
-            document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-emerald-500 animate-none";
+            document.getElementById('statusText').innerText = "Dados Locais Ativos";
+            document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-emerald-500";
+
             initFilters();
             updateDashboard();
         }
@@ -180,9 +172,9 @@
                     div.onclick = (ev) => {
                         const cb = div.querySelector('input');
                         if (ev.target !== cb) cb.checked = !cb.checked;
-                        const label = div.querySelector('span').innerText;
-                        if(cb.checked) { if(!filters[type].includes(label)) filters[type].push(label); }
-                        else filters[type] = filters[type].filter(x => x !== label);
+                        const val = div.querySelector('span').innerText;
+                        if(cb.checked) { if(!filters[type].includes(val)) filters[type].push(val); }
+                        else filters[type] = filters[type].filter(x => x !== val);
                         updateDashboard();
                     };
                     container.appendChild(div);
@@ -211,10 +203,11 @@
             );
 
             let s = { vn:0, vd:0, vol:0, sv:0 }, bData = {}, qMap = {};
+
             filtered.forEach(d => {
                 const st = String(d['STATUS PROCESSO'] || '').toUpperCase();
-                const vn = cleanNum(d['VALOR TOTAL NOTIFICADO']), vd = cleanNum(d['VALOR TOTAL DESCONTADO']), vol = cleanNum(d['VOLUME DESCONTADO']), sv = cleanNum(d['SAVING']);
                 if (!st.includes('CANCEL')) {
+                    const vn = cleanNum(d['VALOR TOTAL NOTIFICADO']), vd = cleanNum(d['VALOR TOTAL DESCONTADO']), vol = cleanNum(d['VOLUME DESCONTADO']), sv = cleanNum(d['SAVING']);
                     s.vn += vn; s.vd += vd; s.vol += vol; s.sv += sv;
                     const b = d.BARCO || 'S/D';
                     if(!bData[b]) bData[b] = {vd:0, vol:0, sv:0};
@@ -276,7 +269,7 @@
                 <tr class="hover:bg-white/5 border-b border-white/5 ${String(r['STATUS PROCESSO'] || '').toUpperCase().includes('CANCEL') ? 'opacity-30' : ''}">
                     <td class="p-4 font-bold text-white">${r.BARCO || 'S/D'}</td>
                     <td class="p-4 text-center">${r['ENQUADRAMENTO QTR'] || '-'}</td>
-                    <td class="p-4 text-slate-300">R$ ${Math.round(cleanNum(r['VALOR TOTAL NOTIFICADO'])).toLocaleString('pt-BR')}</td>
+                    <td class="p-4">R$ ${Math.round(cleanNum(r['VALOR TOTAL NOTIFICADO'])).toLocaleString('pt-BR')}</td>
                     <td class="p-4 text-rose-400 font-bold">R$ ${Math.round(cleanNum(r['VALOR TOTAL DESCONTADO'])).toLocaleString('pt-BR')}</td>
                     <td class="p-4 text-emerald-400 font-bold">R$ ${Math.round(cleanNum(r['SAVING'])).toLocaleString('pt-BR')}</td>
                     <td class="p-4 text-center"><span class="px-2 py-0.5 rounded-full text-[8px] font-900 bg-white/10 uppercase">${r['STATUS PROCESSO'] || 'OK'}</span></td>
