@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAINEL OCORRÊNCIAS - V35</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Roboto', sans-serif !important; }
+        body { background-color: #0b0f1a; color: #f8fafc; }
+        .glass-card { background: rgba(22, 30, 46, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
+        .vivid-text { background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-sync { background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); transition: all 0.3s ease; }
+        .dropdown-content { display: none; position: absolute; background: #1e293b; border: 1px solid #475569; border-radius: 0.6rem; width: 100%; max-height: 300px; overflow-y: auto; z-index: 100; margin-top: 6px; }
+        .dropdown-content.show { display: block; }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <header class="w-full pt-10 pb-6 text-center">
+        <h1 class="text-3xl font-900 vivid-text tracking-tight uppercase mb-1">PAINEL OCORRÊNCIAS CONSUMO EM EXCESSO</h1>
+        <div class="flex items-center justify-center gap-2">
+            <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <p id="statusText" class="text-[10px] text-slate-400 uppercase font-bold tracking-[0.4em]">Tentando Sincronização Automática...</p>
+        </div>
+    </header>
+
+    <nav id="navBar" class="sticky top-0 z-50 bg-[#0b0f1a]/95 backdrop-blur-xl border-y border-white/10 px-6 py-4 hidden">
+        <div class="max-w-[1400px] mx-auto flex flex-wrap items-end justify-center gap-4">
+            <div class="relative min-w-[200px]">
+                <span class="text-sky-400 font-bold text-[9px] uppercase ml-1 block mb-1">Embarcação</span>
+                <div class="bg-[#1e293b] border border-[#334155] rounded-lg p-2 text-xs cursor-pointer flex justify-between items-center" onclick="toggleDropdown('contentBARCO')">
+                    <span id="labelBARCO">Todos</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="contentBARCO" class="dropdown-content p-2"></div>
+            </div>
+            <button onclick="fetchData()" class="btn-sync px-6 py-2 rounded-lg font-bold text-white text-[10px] shadow-lg h-[38px] hover:scale-105 transition-all">
+                FORÇAR ATUALIZAÇÃO
+            </button>
+        </div>
+    </nav>
+
+    <main class="p-6 max-w-[1600px] mx-auto">
+        <div id="dashboardContent" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8 text-center">
+                <div class="glass-card p-6 border-l-4 border-blue-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Valor Notificado</p><h2 id="kpi-v-not" class="text-2xl font-900 mt-2 text-sky-400">R$ 0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-rose-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Total Descontado</p><h2 id="kpi-v-des" class="text-2xl font-900 mt-2 text-rose-500">R$ 0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-amber-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Volume Descontado</p><h2 id="kpi-vol-des" class="text-2xl font-900 mt-2 text-amber-500">0</h2></div>
+                <div class="glass-card p-6 border-l-4 border-emerald-500"><p class="text-[10px] font-bold text-slate-400 uppercase">Saving Total</p><h2 id="kpi-saving" class="text-2xl font-900 mt-2 text-emerald-400">R$ 0</h2></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-card p-6"><h3 class="text-[10px] font-900 text-slate-400 uppercase mb-6 text-center">Volume por Barco</h3><div class="chart-container"><canvas id="chartBarcos"></canvas></div></div>
+                <div class="glass-card p-6"><h3 class="text-[10px] font-900 text-slate-400 uppercase mb-6 text-center">Proporção Desconto vs Saving (Mi)</h3><div class="chart-container"><canvas id="chartAgrupado"></canvas></div></div>
+            </div>
+        </div>
+
+        <div id="setupArea" class="flex flex-col items-center justify-center py-20 text-center">
+            <div id="loader" class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500 mb-6"></div>
+            <p id="msgSetup" class="text-slate-500 text-sm max-w-sm">Se a sincronização demorar, pode ser um bloqueio do navegador para arquivos locais.</p>
+            <label class="mt-6 btn-sync px-10 py-3 rounded-full font-bold text-white cursor-pointer shadow-xl">
+                OU CARREGAR CSV MANUALMENTE
+                <input type="file" id="fileInp" class="hidden" accept=".csv">
+            </label>
+        </div>
+    </main>
+
+    <script>
+        const CSV_LINK = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQbMe1iGMYgj5EyXKgo9uqqoekMrFTrRm7uFqQzUYkNyC_9Z7S_AuC7Bw9VCCMKXw/pub?gid=777564264&single=true&output=csv";
+        Chart.register(ChartDataLabels);
+        let rawData = [], charts = {}, filters = { BARCO: [] };
+
+        window.onload = fetchData;
+
+        async function fetchData() {
+            try {
+                // Tentativa direta
+                const res = await fetch(CSV_LINK + '&t=' + Date.now());
+                if (!res.ok) throw new Error();
+                const text = await res.text();
+                parseData(text);
+            } catch (e) {
+                console.log("Falha no fetch automático. Use o botão manual.");
+                document.getElementById('statusText').innerText = "Sincronização Automática Bloqueada";
+                document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-rose-500";
+            }
+        }
+
+        document.getElementById('fileInp').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => parseData(ev.target.result);
+            reader.readAsText(e.target.files[0]);
+        };
+
+        function parseData(csv) {
+            Papa.parse(csv, {
+                header: true, skipEmptyLines: true,
+                complete: (r) => {
+                    rawData = r.data.map(row => {
+                        let obj = {};
+                        for (let k in row) obj[k.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] = row[k];
+                        return obj;
+                    });
+                    renderDashboard();
+                }
+            });
+        }
+
+        function renderDashboard() {
+            document.getElementById('setupArea').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.remove('hidden');
+            document.getElementById('navBar').classList.remove('hidden');
+            document.getElementById('statusText').innerText = "Sincronizado";
+            document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-emerald-500";
+            
+            const barcos = [...new Set(rawData.map(d => d.BARCO))].filter(Boolean).sort();
+            if (filters.BARCO.length === 0) filters.BARCO = barcos;
+
+            const container = document.getElementById('contentBARCO');
+            container.innerHTML = barcos.map(b => `<label class="flex items-center gap-2 p-1 text-xs cursor-pointer hover:bg-white/5"><input type="checkbox" checked value="${b}"> ${b}</label>`).join('');
+            
+            container.querySelectorAll('input').forEach(input => {
+                input.onchange = () => {
+                    filters.BARCO = Array.from(container.querySelectorAll('input:checked')).map(i => i.value);
+                    document.getElementById('labelBARCO').innerText = filters.BARCO.length + " sel.";
+                    updateCharts();
+                };
+            });
+
+            updateCharts();
+        }
+
+        function cleanNum(v) {
+            if (!v) return 0;
+            let s = v.toString().replace(/R\$/g, '').replace(/\./g, '').replace(',', '.').trim();
+            return parseFloat(s) || 0;
+        }
+
+        function updateCharts() {
+            const filtered = rawData.filter(d => filters.BARCO.includes(d.BARCO) && !String(d['STATUS PROCESSO']).toUpperCase().includes('CANCEL'));
+            
+            let totals = { vn: 0, vd: 0, vol: 0, sv: 0 };
+            let bData = {};
+
+            filtered.forEach(d => {
+                const vn = cleanNum(d['VALOR TOTAL NOTIFICADO']), vd = cleanNum(d['VALOR TOTAL DESCONTADO']), vol = cleanNum(d['VOLUME DESCONTADO']), sv = cleanNum(d['SAVING']);
+                totals.vn += vn; totals.vd += vd; totals.vol += vol; totals.sv += sv;
+                if(!bData[d.BARCO]) bData[d.BARCO] = {vd:0, vol:0, sv:0};
+                bData[d.BARCO].vd += vd; bData[d.BARCO].vol += vol; bData[d.BARCO].sv += sv;
+            });
+
+            document.getElementById('kpi-v-not').innerText = "R$ " + Math.round(totals.vn).toLocaleString('pt-BR');
+            document.getElementById('kpi-v-des').innerText = "R$ " + Math.round(totals.vd).toLocaleString('pt-BR');
+            document.getElementById('kpi-vol-des').innerText = Math.round(totals.vol).toLocaleString('pt-BR');
+            document.getElementById('kpi-saving').innerText = "R$ " + Math.round(totals.sv).toLocaleString('pt-BR');
+
+            // Charts
+            const bLabels = Object.keys(bData).sort((a,b) => bData[b].vol - bData[a].vol);
+            if(charts.barco) charts.barco.destroy();
+            charts.barco = new Chart(document.getElementById('chartBarcos'), {
+                type: 'bar',
+                data: { labels: bLabels, datasets: [{ data: bLabels.map(l => bData[l].vol), backgroundColor: '#2563eb', borderRadius: 5 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: false, datalabels: { color:'#fff', formatter: Math.round } } }
+            });
+
+            if(charts.agrupado) charts.agrupado.destroy();
+            charts.agrupado = new Chart(document.getElementById('chartAgrupado'), {
+                type: 'doughnut',
+                data: { labels: ['Desconto', 'Saving'], datasets: [{ data: [totals.vd, totals.sv], backgroundColor: ['#2563eb', '#10b981'] }] },
+                options: { cutout: '70%', responsive: true, maintainAspectRatio: false, plugins: { datalabels: { color:'#fff', formatter: v => (v/1000000).toFixed(1) + ' Mi' } } }
+            });
+        }
+
+        function toggleDropdown(id) { document.getElementById(id).classList.toggle('show'); }
+    </script>
+</body>
+</html>
