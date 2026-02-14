@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Overview - Consumption in Excess</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --bg: #020617; --accent: #38bdf8; }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-inter { font-family: 'Inter', sans-serif !important; }
+        body { background-color: var(--bg); color: #f1f5f9; background-image: radial-gradient(circle at 0% 0%, #1e293b 0%, #020617 50%); min-height: 100vh; margin: 0; }
+        .glass-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
+        .filter-btn { background: #1e293b; border: 1px solid #334155; padding: 0.8rem 1.2rem; border-radius: 0.7rem; width: 100%; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.9rem; }
+        .filter-menu { display: none; position: absolute; top: 105%; left: 0; width: 100%; background: #1e293b; border: 1px solid var(--accent); border-radius: 0.7rem; z-index: 9999; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .filter-menu.show { display: block; }
+        .opt-row { display: flex; align-items: center; padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .check-box { width: 18px; height: 18px; border: 2px solid #475569; border-radius: 4px; margin-right: 10px; flex-shrink: 0; position: relative; }
+        .selected .check-box { background: var(--accent); border-color: var(--accent); }
+        .selected .check-box::after { content: '✓'; position: absolute; color: #000; font-size: 11px; font-weight: 900; left: 3px; top: -1px; }
+        #status-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 10000; height: 3px; background: transparent; }
+        #status-bar.loading { background: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="status-bar"></div>
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col items-center mb-8 pt-4 text-center">
+            <h1 class="font-inter text-2xl md:text-3xl font-extrabold italic text-white uppercase">
+                Overview - <span class="text-sky-500">Consumption in Excess</span>
+            </h1>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="relative"><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Embarcação</label>
+                <div onclick="toggleMenu('m-barco')" class="filter-btn"><span id="t-barco">Todas</span> <i class="fas fa-chevron-down opacity-30"></i></div>
+                <div id="m-barco" class="filter-menu"><div id="l-barco"></div></div>
+            </div>
+            <div class="relative"><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Ano</label><div onclick="toggleMenu('m-ano')" class="filter-btn"><span id="t-ano">Todos</span> <i class="fas fa-chevron-down opacity-30"></i></div><div id="m-ano" class="filter-menu"><div id="l-ano"></div></div></div>
+            <div class="relative"><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Trimestre</label><div onclick="toggleMenu('m-qtr')" class="filter-btn"><span id="t-qtr">Todos</span> <i class="fas fa-chevron-down opacity-30"></i></div><div id="m-qtr" class="filter-menu"><div id="l-qtr"></div></div></div>
+            <div class="relative"><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Status</label><div onclick="toggleMenu('m-status')" class="filter-btn"><span id="t-status">Todos</span> <i class="fas fa-chevron-down opacity-30"></i></div><div id="m-status" class="filter-menu"><div id="l-status"></div></div></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 kpi-grid">
+            <div class="glass-card p-4 border-l-4 border-sky-500"><p class="text-slate-500 text-[9px] font-bold uppercase mb-1">Notificado</p><h2 id="k-total" class="text-lg font-extrabold">R$ 0,00</h2></div>
+            <div class="glass-card p-4 border-l-4 border-emerald-500"><p class="text-slate-500 text-[9px] font-bold uppercase mb-1">Descontado</p><h2 id="k-desc" class="text-lg font-extrabold text-emerald-400">R$ 0,00</h2></div>
+            <div class="glass-card p-4 border-l-4 border-amber-500"><p class="text-slate-500 text-[9px] font-bold uppercase mb-1">Volume</p><h2 id="k-vol" class="text-lg font-extrabold text-amber-400">0</h2></div>
+            <div class="glass-card p-4 border-l-4 border-indigo-500"><p class="text-slate-500 text-[9px] font-bold uppercase mb-1">Saving</p><h2 id="k-sav" class="text-lg font-extrabold text-indigo-400">R$ 0,00</h2></div>
+        </div>
+
+        <div class="glass-card p-6 mb-8"><h3 class="text-xs font-bold text-slate-500 uppercase mb-4 text-center">Evolução por Trimestre</h3><div style="height: 250px;"><canvas id="trendChart"></canvas></div></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="glass-card p-6"><h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Ranking por Embarcação</h3><div style="height: 400px;"><canvas id="barChart"></canvas></div></div>
+            <div class="glass-card p-6 flex flex-col"><h3 id="toggle-title" class="text-xs font-bold text-slate-500 uppercase mb-4 text-center">Resumo Financeiro</h3><div class="flex-grow flex items-center justify-center" style="min-height: 350px;"><canvas id="toggleChart"></canvas></div></div>
+        </div>
+
+        <div class="glass-card p-4 md:p-6 overflow-hidden mb-16">
+            <div class="overflow-x-auto"><table id="procTable" class="w-full text-left"><thead><tr class="text-slate-500 text-[10px] uppercase"><th>Barco</th><th>Processo</th><th>QTR</th><th>Descontado</th><th>Saving</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <footer class="flex flex-col md:flex-row justify-center items-center gap-4 pb-12 border-t border-slate-800 pt-8">
+            <label class="cursor-pointer bg-slate-800 px-6 py-3 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-2 text-slate-400">
+                <i class="fas fa-file-upload"></i> Upload Manual (CSV)
+                <input type="file" accept=".csv" class="hidden" onchange="handleFile(event)">
+            </label>
+            <button onclick="iphoneLoad()" class="bg-sky-600 px-6 py-3 rounded-xl text-xs font-bold flex items-center gap-2 text-white shadow-lg">
+                <i class="fas fa-sync-alt" id="spin"></i> Sincronizar Agora
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbMe1iGMYgj5EyXKgo9uqqoekMrFTrRm7uFqQzUYkNyC_9Z7S_AuC7Bw9VCCMKXw/pub?gid=777564264&single=true&output=csv';
+        let db = [], filters = { barco: [], ano: [], qtr: [], status: [] }, charts = {};
+        const COLORS = ['#38bdf8', '#818cf8', '#10b981', '#fbbf24', '#f87171', '#ec4899', '#a855f7', '#06b6d4', '#f97316', '#2dd4bf'];
+
+        Chart.defaults.font.family = 'Inter';
+        Chart.register(ChartDataLabels);
+
+        // ESSENCIAL PARA IPHONE: Tentar carregar via JSONP-Bridge (Script injection)
+        function iphoneLoad() {
+            const spin = document.getElementById('spin');
+            const bar = document.getElementById('status-bar');
+            spin.classList.add('fa-spin');
+            bar.classList.add('loading');
+
+            // AllOrigins JSONP Bridge: O Safari aceita isso pois parece um script externo comum
+            const callbackName = 'csv_jsonp_' + Date.now();
+            window[callbackName] = function(data) {
+                Papa.parse(data.contents, {
+                    header: true, skipEmptyLines: true,
+                    complete: r => { 
+                        process(r.data); 
+                        spin.classList.remove('fa-spin'); 
+                        bar.classList.remove('loading');
+                        delete window[callbackName];
+                    }
+                });
+            };
+
+            const script = document.createElement('script');
+            script.src = `https://api.allorigins.win/get?url=${encodeURIComponent(SHEET_URL)}&callback=${callbackName}`;
+            document.body.appendChild(script);
+            
+            // Fallback imediato se o script falhar (método clássico para PC/Android)
+            setTimeout(() => { if(db.length === 0) fetchClassic(); }, 2000);
+        }
+
+        async function fetchClassic() {
+            Papa.parse(SHEET_URL + '&cache=' + Date.now(), {
+                download: true, header: true, skipEmptyLines: true,
+                complete: r => { process(r.data); document.getElementById('spin').classList.remove('fa-spin'); document.getElementById('status-bar').classList.remove('loading'); }
+            });
+        }
+
+        window.onload = iphoneLoad;
+        window.onclick = e => { if(!e.target.closest('.relative')) document.querySelectorAll('.filter-menu').forEach(m=>m.classList.remove('show')); };
+
+        function handleFile(e) {
+            const f = e.target.files[0];
+            if(f) Papa.parse(f, { header: true, skipEmptyLines: true, complete: r => process(r.data) });
+        }
+
+        function findCol(d, words) {
+            if(!d || d.length === 0) return null;
+            return Object.keys(d[0]).find(k => words.some(w => k.toLowerCase().trim().includes(w)));
+        }
+
+        function process(data) {
+            const kB = findCol(data, ['barco']);
+            if(!kB) return;
+            db = data.filter(d => {
+                const b = String(d[kB] || "").trim();
+                return b !== "" && isNaN(b) && !Object.values(d).some(v => String(v).toLowerCase().includes('total'));
+            });
+            buildFilter(kB, 'l-barco', 'barco');
+            buildFilter(findCol(data, ['ano']), 'l-ano', 'ano');
+            buildFilter(findCol(data, ['enquadramento qtr']), 'l-qtr', 'qtr');
+            buildFilter(findCol(data, ['status processo']), 'l-status', 'status');
+            update();
+        }
+
+        function buildFilter(key, listId, type) {
+            const unique = [...new Set(db.map(d => d[key]))].filter(x => x).sort();
+            document.getElementById(listId).innerHTML = `
+                <div class="opt-row font-bold text-sky-400" onclick="toggleAll('${type}', this)"><div class="check-box"></div><span class="text-xs">Selecionar Tudo</span></div>
+                ${unique.map(v => `<div class="opt-row filter-opt" data-val="${v}" onclick="select('${type}', '${v}', this)"><div class="check-box"></div><span class="text-xs text-slate-300">${v}</span></div>`).join('')}
+            `;
+        }
+
+        function toggleAll(type, el) {
+            const listId = (type === 'barco' ? 'l-barco' : (type === 'ano' ? 'l-ano' : (type === 'qtr' ? 'l-qtr' : 'l-status')));
+            const opts = document.querySelectorAll(`#${listId} .filter-opt`);
+            const isSel = !el.classList.contains('selected');
+            filters[type] = isSel ? Array.from(opts).map(o => o.dataset.val) : [];
+            el.classList.toggle('selected', isSel);
+            opts.forEach(o => o.classList.toggle('selected', isSel));
+            updateLabel(type); update();
+        }
+
+        function select(type, val, el) {
+            const idx = filters[type].indexOf(val);
+            if(idx > -1) filters[type].splice(idx, 1); else filters[type].push(val);
+            el.classList.toggle('selected');
+            updateLabel(type); update();
+        }
+
+        function updateLabel(type) {
+            const c = filters[type].length;
+            document.getElementById(`t-${type}`).innerHTML = c === 0 ? "Todas" : `Sel. (${c})`;
+        }
+
+        function clean(v) {
+            if(!v) return 0;
+            let n = v.toString().replace('R$', '').replace(/\s/g, '');
+            if(n.includes(',') && n.includes('.')) { n = n.indexOf('.') < n.indexOf(',') ? n.replace(/\./g, '').replace(',', '.') : n.replace(/,/g, ''); } 
+            else n = n.replace(',', '.');
+            return parseFloat(n) || 0;
+        }
+
+        function formatMi(val) {
+            if (val === 0) return '0';
+            return (Math.abs(val) >= 1000000) ? (val / 1000000).toFixed(2) + ' Mi' : (val / 1000).toFixed(0) + ' K';
+        }
+
+        function update() {
+            const kB = findCol(db, ['barco']), kT = findCol(db, ['ano']), kQ = findCol(db, ['enquadramento qtr']), kS = findCol(db, ['status processo']);
+            const kVn = findCol(db, ['valor total notificado']) || findCol(db, ['valor inicial']);
+            const kVd = findCol(db, ['valor total descontado']), kVol = findCol(db, ['volume descontado']), kSav = findCol(db, ['saving']), kC = findCol(db, ['carta', 'processo']);
+
+            const fil = db.filter(d => 
+                (filters.barco.length === 0 || filters.barco.includes(d[kB])) &&
+                (filters.ano.length === 0 || filters.ano.includes(d[kT])) &&
+                (filters.qtr.length === 0 || filters.qtr.includes(d[kQ])) &&
+                (filters.status.length === 0 || filters.status.includes(d[kS]))
+            );
+
+            let tN = 0, tD = 0, tV = 0, tS = 0;
+            const bMap = {}, qtrMap = {};
+            fil.forEach(d => {
+                const vn = clean(d[kVn]), vd = clean(d[kVd]), vol = clean(d[kVol]), sav = clean(d[kSav]);
+                tN += vn; tD += vd; tV += vol; tS += sav;
+                bMap[d[kB]] = (bMap[d[kB]] || 0) + vd;
+                qtrMap[d[kQ]] = (qtrMap[d[kQ]] || 0) + vn;
+            });
+
+            document.getElementById('k-total').innerText = tN.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+            document.getElementById('k-desc').innerText = tD.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+            document.getElementById('k-vol').innerText = tV.toLocaleString('pt-BR');
+            document.getElementById('k-sav').innerText = tS.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+            renderTrend(qtrMap); renderRanking(bMap); renderToggle(tD, tS, fil, kB, kVd, kSav);
+            document.querySelector('#procTable tbody').innerHTML = fil.slice(0,50).map(d => `<tr><td class="font-bold text-slate-300 text-xs">${d[kB]}</td><td class="text-xs">${d[kC]||'-'}</td><td class="text-xs">${d[kQ]||'-'}</td><td class="text-sky-400 text-xs font-bold">${clean(d[kVd]).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td><td class="text-emerald-400 text-xs font-bold">${clean(d[kSav]).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td><td><span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] border border-slate-700">${d[kS]||'-'}</span></td></tr>`).join('');
+        }
+
+        function renderTrend(data) {
+            const parseL = (l) => { const m = l.match(/(\d)T\s*(\d{4})/i) || l.match(/Q(\d)\s*(\d{4})/i); return m ? parseFloat(m[2]+"."+m[1]) : 0; };
+            let keys = Object.keys(data);
+            if(filters.qtr.length === 0) keys = keys.filter(k => !k.toUpperCase().includes("CANCELAD"));
+            const labels = keys.sort((a,b) => parseL(a) - parseL(b));
+            if(charts.trend) charts.trend.destroy();
+            charts.trend = new Chart(document.getElementById('trendChart'), {
+                type: 'line', data: { labels, datasets: [{ data: labels.map(l=>data[l]), borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.1)', fill: true, tension: 0.4, pointRadius: 5 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false}, datalabels:{color:'#fff', align:'top', font:{family:'Inter', weight:'bold', size:12}, formatter: formatMi} }, scales:{y:{display:false}, x:{ticks:{font:{family:'Inter', size:10}}}} }
+            });
+        }
+
+        function renderRanking(data) {
+            const sorted = Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+            if(charts.bar) charts.bar.destroy();
+            charts.bar = new Chart(document.getElementById('barChart'), {
+                type: 'bar', data: { labels: sorted.map(x=>x[0]), datasets: [{ data: sorted.map(x=>x[1]), backgroundColor: COLORS, borderRadius: 6 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend:{display:false}, datalabels:{color:'#fff', anchor:'end', align:'right', font:{family:'Inter', weight:'bold', size:12}, formatter: formatMi} }, scales:{x:{display:false}, y:{ticks:{font:{family:'Inter', size:11}}}} }
+            });
+        }
+
+        function renderToggle(tD, tS, fil, kB, kVd, kSav) {
+            if(charts.tog) charts.tog.destroy();
+            const ctx = document.getElementById('toggleChart');
+            if (filters.barco.length > 0) {
+                const labs = filters.barco.slice(0, 6);
+                charts.tog = new Chart(ctx, {
+                    type: 'bar', data: { labels: labs, datasets: [
+                        { label: 'Desc', data: labs.map(b=>fil.filter(d=>d[kB]===b).reduce((a,c)=>a+clean(c[kVd]),0)), backgroundColor: '#10b981' },
+                        { label: 'Sav', data: labs.map(b=>fil.filter(d=>d[kB]===b).reduce((a,c)=>a+clean(c[kSav]),0)), backgroundColor: '#818cf8' }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'bottom'}, datalabels:{color:'#fff', font:{family:'Inter', size:10}, formatter: formatMi}}, scales:{y:{display:false}} }
+                });
+            } else {
+                charts.tog = new Chart(ctx, {
+                    type: 'doughnut', data: { labels: ['Descontado', 'Saving'], datasets: [{ data: [tD, tS], backgroundColor: ['#10b981', '#818cf8'], borderWidth: 0 }] },
+                    options: { cutout:'70%', responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'bottom'}, datalabels:{color:'#fff', font:{family:'Inter', weight:'bold', size:14}, formatter: formatMi}} }
+                });
+            }
+        }
+
+        function toggleMenu(id) {
+            const isShow = document.getElementById(id).classList.contains('show');
+            document.querySelectorAll('.filter-menu').forEach(m=>m.classList.remove('show'));
+            if(!isShow) document.getElementById(id).classList.add('show');
+        }
+    </script>
+</body>
+</html>
